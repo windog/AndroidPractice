@@ -32,6 +32,8 @@ public class SketchView extends View {
        本例中，此方法中调用了第二个构造函数
     * */
     public SketchView(Context context) {
+        // 这行是默认构造，注意跟重写之后的区别
+        // super(context);
         this(context, null);
     }
 
@@ -41,6 +43,8 @@ public class SketchView extends View {
         本例中，此方法中调用了第三个构造函数
     * */
     public SketchView(Context context, AttributeSet attrs) {
+        // 这行是默认构造，注意跟重写之后的区别
+        // super(context,attrs);
         this(context, attrs, 0);
     }
 
