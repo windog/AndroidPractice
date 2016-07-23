@@ -17,6 +17,13 @@
         android:layout_height="match_parent"
         android:layout_marginRight="16dp"
         android:layout_marginLeft="16dp"
-        app:background_color="@color/colorPrimary"
+        app:background_color="@color/colorAccent"
         app:size="24dp"/>
+    
+    <Button
+        android:id="@+id/btn_toActivity2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/sketch_view"
+        android:text="to activity2"/>
 </RelativeLayout>
