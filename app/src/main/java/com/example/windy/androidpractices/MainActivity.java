@@ -1,9 +1,16 @@
 package com.example.windy.androidpractices;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+import com.orhanobut.logger.Logger;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String LOG_TAG = MainActivity.class.getClass().getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -12,5 +19,23 @@ public class MainActivity extends AppCompatActivity {
 
         SketchView sketchView = (SketchView) findViewById(R.id.sketch_view);
         sketchView.startAnimation();
+
+        // 单例模式饿汉式
+        System.out.printf(Singleton.getInstance().getClass().getSimpleName());
+        // 单例模式懒汉式
+        System.out.printf(Singleton1.getInstance().getClass().getSimpleName());
+
+        // 调用默认构造函数，不带参数的。
+        ArrayList<String> arraylist = new ArrayList<String>();
+        arraylist.add("0");
+        arraylist.add("1");
+        arraylist.add("2");
+        arraylist.add("3");
+
+        for (String s:arraylist) {
+            Logger.d(LOG_TAG,s);
+        }
+
+        Log.d(LOG_TAG,arraylist.get(1));
     }
 }
