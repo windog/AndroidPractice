@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         // 单例模式懒汉式
         System.out.printf(Singleton1.getInstance().getClass().getSimpleName());
 
-        // 调用默认构造函数，不带参数的。
+        // 调用默认构造函数，不带参数的
         ArrayList<String> arraylist = new ArrayList<String>();
         arraylist.add("0");
         arraylist.add("1");
