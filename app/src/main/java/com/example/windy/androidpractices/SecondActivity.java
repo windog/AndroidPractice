@@ -1,15 +1,14 @@
 package com.example.windy.androidpractices;
 
 import android.app.Activity;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
+import com.example.windy.androidpractices.NewsBean.*;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,11 +28,6 @@ public class SecondActivity extends Activity {
     //慕课网提供的后台数据
     private static final String URL = "http://www.imooc.com/api/teacher?type=4&num=30";
     private static final String LOG_TAG = SecondActivity.class.getClass().getSimpleName();
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,19 +38,55 @@ public class SecondActivity extends Activity {
         new NewsAsyncTask().execute(URL);
     }
 
-    private List<NewsBean> getJsonData(String url) {
-        List<NewsBean> newsBeanList = new ArrayList<>();
+    /**
+     * 将 URL 对应的 JSon 数据转为 NewsBean 对象
+     *
+     * @param url
+     * @return
+     */
+    private List<DataBean> getJsonData(String url) {
+        List<DataBean> dataBeanList = new ArrayList<>();
         try {
             // new URL(url).openStream() 这一句和 url.openConnection().getInputStream() 相同
             // 可根据 URL 直接联网获取网络数据，返回类型为 InputStream
             String jsonString = readStream(new URL(url).openStream());
             Log.d(LOG_TAG, jsonString);
+
+            // 解析 Json 字符串
+
+            // 使用 gson 解析
+            // 注意 Json 的结构，对象本身就是一个 List ，还是一个对象里面有一个 list ，要分清楚。
+            Gson gson = new Gson();
+            NewsBean newsbean = gson.fromJson(jsonString, new TypeToken<NewsBean>(){}.getType());
+            dataBeanList = newsbean.getData();
+
+            // 使用 JsonObject 解析
+//            JSONObject jsonObject;
+//            NewsBean newsBean;
+//            jsonObject = new JSONObject(jsonString);
+//            JSONArray jsonArray = jsonObject.getJSONArray("data");
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                jsonObject = jsonArray.getJSONObject(i);
+//                newsBean = new NewsBean();
+//                newsBean.getData().get(i).setPicSmall(jsonObject.getString("picSmall"));
+//                newsBean.getData().get(i).setName(jsonObject.getString("name"));
+//                newsBean.getData().get(i).setDescription(jsonObject.getString("description"));
+//                newsBeanList.add(newsBean);
+//            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return newsBeanList;
+
+        return dataBeanList;
     }
 
+    /**
+     * 用字符流读取网络数据，转为 String 对象
+     *
+     * @param inputStream
+     * @return
+     */
     private String readStream(InputStream inputStream) {
         InputStreamReader isr;
         String result = "";
@@ -77,52 +107,22 @@ public class SecondActivity extends Activity {
         return result;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Second Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.example.windy.androidpractices/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Second Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://com.example.windy.androidpractices/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }
-
-    // 返回的是 NewsBean 的集合
-    class NewsAsyncTask extends AsyncTask<String, Void, List<NewsBean>> {
+    /**
+     * 实现网络的异步访问
+     * 返回的是 NewsBean 的集合
+     */
+    class NewsAsyncTask extends AsyncTask<String, Void, List<DataBean>> {
 
         @Override
-        protected List<NewsBean> doInBackground(String... params) {
+        protected List<DataBean> doInBackground(String... params) {
             return getJsonData(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(List<DataBean> dataBeans) {
+            super.onPostExecute(dataBeans);
+            NewsAdapter newsadaper = new NewsAdapter(SecondActivity.this, dataBeans);
+            mListView.setAdapter(newsadaper);
         }
     }
 }
