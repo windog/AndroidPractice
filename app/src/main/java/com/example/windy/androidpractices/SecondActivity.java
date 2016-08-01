@@ -56,6 +56,7 @@ public class SecondActivity extends Activity {
 
             // 使用 gson 解析
             // 注意 Json 的结构，对象本身就是一个 List ，还是一个对象里面有一个 list ，要分清楚。
+            // 主要观察 gson 生成的类 ，看看需要的数据结构是什么样的
             Gson gson = new Gson();
             NewsBean newsbean = gson.fromJson(jsonString, new TypeToken<NewsBean>(){}.getType());
             dataBeanList = newsbean.getData();
