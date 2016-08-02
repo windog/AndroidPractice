@@ -4,8 +4,10 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.windy.androidpractices.R;
@@ -15,18 +17,29 @@ import java.util.List;
 /**
  * Created by windog on 2016/8/1.
  */
-public class NewsAdapter extends BaseAdapter {
+public class NewsAdapter extends BaseAdapter implements AbsListView.OnScrollListener {
 
     private List<NewsBean.DataBean> mList;
     private LayoutInflater mInflater;
     // 重复使用 ImageLoader ，不然达不到缓存效果
     private ImageLoader mImageLoader;
+    // 第一个可见 Item 和最后一个可见 Item ，滑动停止时就加载这之间的所有 item
+    private int mStart, mEnd;
+    // 获取到的所有图片 URL 的地址集合
+    public static String[] mImageURLStrings;
 
-    public NewsAdapter(Context context, List<NewsBean.DataBean> data) {
+    public NewsAdapter(Context context, List<NewsBean.DataBean> data, ListView listview) {
         // 在构造方法中初始化三个个全局变量
         mList = data;
         mInflater = LayoutInflater.from(context);
-        mImageLoader = new ImageLoader();
+        mImageLoader = new ImageLoader(listview);
+        mImageURLStrings = new String[data.size()];
+        // 将获取到的图片 URL 都放入一个数组
+        for (int i = 0; i < data.size(); i++) {
+            mImageURLStrings[i] = data.get(i).getPicSmall();
+        }
+        // 设置滚动监听事件，否则会出错
+        listview.setOnScrollListener(this);
     }
 
     @Override
@@ -70,11 +83,43 @@ public class NewsAdapter extends BaseAdapter {
 //        // 多线程的方式加载图片
 //        new ImageLoader().showImageByThread(viewHolder.ivIcon, imageURL);
         // AsyncTask 的方式加载图片
-        mImageLoader.showImageByAsyncTask(viewHolder.ivIcon,imageURL);
+        mImageLoader.showImageByAsyncTask(viewHolder.ivIcon, imageURL);
 
         viewHolder.tvTitle.setText(mList.get(position).getName());
         viewHolder.tvContent.setText(mList.get(position).getDescription());
         return convertView;
+    }
+
+    /**
+     * 滑动状态改变时才调用
+     *
+     * @param view
+     * @param scrollState
+     */
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        if (scrollState == SCROLL_STATE_IDLE) {
+            // 滚动是停止状态，那就加载所有可见项
+            mImageLoader.loadImages(mStart, mEnd);
+        } else {
+            // 否则，停止所有加载
+            mImageLoader.cancelAllTasks();
+        }
+    }
+
+    /**
+     * 滑动状态时一直调用
+     *
+     * @param view
+     * @param firstVisibleItem 第一个可见的 Item
+     * @param visibleItemCount 可见 Item 的数量
+     * @param totalItemCount
+     */
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        mStart = firstVisibleItem;
+        mEnd = firstVisibleItem + visibleItemCount;
+
     }
 
     // 自定义一个类，用于缓存优化

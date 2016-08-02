@@ -7,6 +7,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.LruCache;
 import android.widget.ImageView;
+import android.widget.ListView;
+
+import com.example.windy.androidpractices.R;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -14,6 +17,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by windog on 2016/8/2.
@@ -24,8 +29,12 @@ public class ImageLoader {
     private String mImageURL;
     // Android 提供 LruCache 类实现 Least Recently Used 算法缓存
     private LruCache<String, Bitmap> mImageCache;
+    private ListView mListView;
+    private Set<ImageLoaderAsyncTask> mTask;
 
-    public ImageLoader() {
+    public ImageLoader(ListView listview) {
+        mListView = listview;
+        mTask = new HashSet<>();
         // 获取当前可用的最大内存，以确定我们要拿出多少内存来作为缓存空间使用
         int maxMemory = (int) Runtime.getRuntime().maxMemory();
         // 取 1/4 做为缓存使用
@@ -133,23 +142,59 @@ public class ImageLoader {
      * @param imageURL
      */
     public void showImageByAsyncTask(ImageView imageView, String imageURL) {
+        // 从缓存中取出图片
         Bitmap bitmap = getBitmapFromCache(imageURL);
         if (bitmap == null) {
-            new ImageLoaderAsyncTask(imageView, imageURL).execute(imageURL);
+            //缓存中没有，那么就设置默认图片
+            //相当于把显示图片的控制权，移交给 loadImages()
+            imageView.setImageResource(R.mipmap.ic_launcher);
         } else {
             imageView.setImageBitmap(bitmap);
         }
     }
 
+    /**
+     * 加载当前可见的图片
+     *
+     * @param start
+     * @param end
+     */
+    public void loadImages(int start, int end) {
+        for (int i = start; i < end; i++) {
+            String imageURL = NewsAdapter.mImageURLStrings[i];
+            Bitmap bitmap = getBitmapFromCache(imageURL);
+            if (bitmap == null) {
+                ImageLoaderAsyncTask task = new ImageLoaderAsyncTask(imageURL);
+                task.execute(imageURL);
+                mTask.add(task);
+            } else {
+                ImageView imageView = (ImageView) mListView.findViewWithTag(imageURL);
+                imageView.setImageBitmap(bitmap);
+            }
+        }
+    }
+
+    /**
+     * 用于滚动时停止任务
+     */
+    public void cancelAllTasks() {
+        if (mTask != null) {
+            // 循环取消掉每一个任务
+            for (ImageLoaderAsyncTask task : mTask) {
+                task.cancel(false);
+            }
+        }
+    }
+
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
 
-        private ImageView mImageView;
+        //        private ImageView mImageView;
         private String mImageURL;
 
         // 构造函数
-        public ImageLoaderAsyncTask(ImageView imageView, String url) {
+        public ImageLoaderAsyncTask(String url) {
             // 初始化全局变量，将传来的值赋予它
-            mImageView = imageView;
+//            mImageView = imageView;
             mImageURL = url;
 
         }
@@ -168,9 +213,11 @@ public class ImageLoader {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
-            if (mImageView.getTag().equals(mImageURL)) {
-                mImageView.setImageBitmap(bitmap);
+            ImageView imageView = (ImageView) mListView.findViewWithTag(mImageURL);
+            if (imageView != null && bitmap != null) {
+                imageView.setImageBitmap(bitmap);
             }
+            mTask.remove(this);
         }
     }
 }

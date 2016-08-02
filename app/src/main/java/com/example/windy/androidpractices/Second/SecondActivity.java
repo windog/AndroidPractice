@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
+
 import com.example.windy.androidpractices.Second.NewsBean.*;
 
 import com.example.windy.androidpractices.R;
@@ -59,7 +60,8 @@ public class SecondActivity extends Activity {
             // 注意 Json 的结构，对象本身就是一个 List ，还是一个对象里面有一个 list ，要分清楚。
             // 主要观察 gson 生成的类 ，看看需要的数据结构是什么样的
             Gson gson = new Gson();
-            NewsBean newsbean = gson.fromJson(jsonString, new TypeToken<NewsBean>(){}.getType());
+            NewsBean newsbean = gson.fromJson(jsonString, new TypeToken<NewsBean>() {
+            }.getType());
             dataBeanList = newsbean.getData();
 
             // 使用 JsonObject 解析
@@ -123,7 +125,7 @@ public class SecondActivity extends Activity {
         @Override
         protected void onPostExecute(List<DataBean> dataBeans) {
             super.onPostExecute(dataBeans);
-            NewsAdapter newsadaper = new NewsAdapter(SecondActivity.this, dataBeans);
+            NewsAdapter newsadaper = new NewsAdapter(SecondActivity.this, dataBeans, mListView);
             mListView.setAdapter(newsadaper);
         }
     }
