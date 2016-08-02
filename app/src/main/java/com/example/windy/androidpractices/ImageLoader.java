@@ -104,6 +104,7 @@ public class ImageLoader {
             // 初始化全局变量，将传来的值赋予它
             mImageView = imageView;
             mImageURL = url;
+
         }
 
         @Override
