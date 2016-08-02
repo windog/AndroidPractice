@@ -27,6 +27,8 @@ public class NewsAdapter extends BaseAdapter implements AbsListView.OnScrollList
     private int mStart, mEnd;
     // 获取到的所有图片 URL 的地址集合
     public static String[] mImageURLStrings;
+    // 是否第一次加载，如果是第一次，图片会直接预加载。以免第一次进入，不滚动就不加载。
+    private boolean mFirstLoad;
 
     public NewsAdapter(Context context, List<NewsBean.DataBean> data, ListView listview) {
         // 在构造方法中初始化三个个全局变量
@@ -38,6 +40,7 @@ public class NewsAdapter extends BaseAdapter implements AbsListView.OnScrollList
         for (int i = 0; i < data.size(); i++) {
             mImageURLStrings[i] = data.get(i).getPicSmall();
         }
+        mFirstLoad = true;
         // 设置滚动监听事件，否则会出错
         listview.setOnScrollListener(this);
     }
@@ -108,7 +111,7 @@ public class NewsAdapter extends BaseAdapter implements AbsListView.OnScrollList
     }
 
     /**
-     * 滑动状态时一直调用
+     * 会一直调用，不管滚动还是不滚动
      *
      * @param view
      * @param firstVisibleItem 第一个可见的 Item
@@ -119,7 +122,11 @@ public class NewsAdapter extends BaseAdapter implements AbsListView.OnScrollList
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         mStart = firstVisibleItem;
         mEnd = firstVisibleItem + visibleItemCount;
-
+        // 首次进入时，当前可见项，预加载图片
+        if (mFirstLoad && visibleItemCount > 0) {
+            mImageLoader.loadImages(mStart, mEnd);
+            mFirstLoad = false;
+        }
     }
 
     // 自定义一个类，用于缓存优化
