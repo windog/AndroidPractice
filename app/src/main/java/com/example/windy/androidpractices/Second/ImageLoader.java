@@ -1,10 +1,11 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.Second;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.util.LruCache;
 import android.widget.ImageView;
 
 import java.io.BufferedInputStream;
@@ -21,6 +22,51 @@ public class ImageLoader {
 
     private ImageView mImageView;
     private String mImageURL;
+    // Android 提供 LruCache 类实现 Least Recently Used 算法缓存
+    private LruCache<String, Bitmap> mImageCache;
+
+    public ImageLoader() {
+        // 获取当前可用的最大内存，以确定我们要拿出多少内存来作为缓存空间使用
+        int maxMemory = (int) Runtime.getRuntime().maxMemory();
+        // 取 1/4 做为缓存使用
+        int cacheSize = maxMemory / 4;
+        // 初始化 LruCache，重写 sizeOf
+        mImageCache = new LruCache<String, Bitmap>(cacheSize) {
+            /**
+             *  每次加入缓存时会调用，所以要返回每个 bitmap 的确切大小
+             * @param key
+             * @param value
+             * @return
+             */
+            @Override
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getByteCount();
+            }
+        };
+    }
+
+    /**
+     * 存入缓存
+     *
+     * @param url
+     * @param bitmap
+     */
+    public void addBitmapToCache(String url, Bitmap bitmap) {
+        if (getBitmapFromCache(url) == null) {
+            mImageCache.put(url, bitmap);
+        }
+    }
+
+    /**
+     * 从缓存中获取数据
+     *
+     * @param url
+     * @return
+     */
+    public Bitmap getBitmapFromCache(String url) {
+        return mImageCache.get(url);
+    }
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -65,14 +111,10 @@ public class ImageLoader {
             inputStream = new BufferedInputStream(httpURLConnection.getInputStream());
             bitmap = BitmapFactory.decodeStream(inputStream);
             httpURLConnection.disconnect();
-            // 模拟网络不好的情况
-            Thread.sleep(1000);
             return bitmap;
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             try {
@@ -91,7 +133,12 @@ public class ImageLoader {
      * @param imageURL
      */
     public void showImageByAsyncTask(ImageView imageView, String imageURL) {
-        new ImageLoaderAsyncTask(imageView, imageURL).execute(imageURL);
+        Bitmap bitmap = getBitmapFromCache(imageURL);
+        if (bitmap == null) {
+            new ImageLoaderAsyncTask(imageView, imageURL).execute(imageURL);
+        } else {
+            imageView.setImageBitmap(bitmap);
+        }
     }
 
     private class ImageLoaderAsyncTask extends AsyncTask<String, Void, Bitmap> {
@@ -109,7 +156,13 @@ public class ImageLoader {
 
         @Override
         protected Bitmap doInBackground(String... params) {
-            return getBitmapFromURL(params[0]);
+            String url = params[0];
+            Bitmap bitmap = getBitmapFromURL(url);
+            // 下载完成后，添加到缓存
+            if (bitmap != null) {
+                addBitmapToCache(url, bitmap);
+            }
+            return bitmap;
         }
 
         @Override

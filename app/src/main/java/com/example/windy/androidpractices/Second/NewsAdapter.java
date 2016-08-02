@@ -1,4 +1,4 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.Second;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,7 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.windy.androidpractices.NewsBean.DataBean;
+import com.example.windy.androidpractices.R;
 
 import java.util.List;
 
@@ -17,13 +17,16 @@ import java.util.List;
  */
 public class NewsAdapter extends BaseAdapter {
 
-    private List<DataBean> mList;
+    private List<NewsBean.DataBean> mList;
     private LayoutInflater mInflater;
+    // 重复使用 ImageLoader ，不然达不到缓存效果
+    private ImageLoader mImageLoader;
 
-    public NewsAdapter(Context context, List<DataBean> data) {
-        // 在构造方法中初始化两个全局变量
+    public NewsAdapter(Context context, List<NewsBean.DataBean> data) {
+        // 在构造方法中初始化三个个全局变量
         mList = data;
         mInflater = LayoutInflater.from(context);
+        mImageLoader = new ImageLoader();
     }
 
     @Override
@@ -67,7 +70,7 @@ public class NewsAdapter extends BaseAdapter {
 //        // 多线程的方式加载图片
 //        new ImageLoader().showImageByThread(viewHolder.ivIcon, imageURL);
         // AsyncTask 的方式加载图片
-        new ImageLoader().showImageByAsyncTask(viewHolder.ivIcon,imageURL);
+        mImageLoader.showImageByAsyncTask(viewHolder.ivIcon,imageURL);
 
         viewHolder.tvTitle.setText(mList.get(position).getName());
         viewHolder.tvContent.setText(mList.get(position).getDescription());

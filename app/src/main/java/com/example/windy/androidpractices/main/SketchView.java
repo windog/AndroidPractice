@@ -1,4 +1,4 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.main;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -9,6 +9,8 @@ import android.graphics.Paint;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.example.windy.androidpractices.R;
 
 /**
  * Created by windog on 2016/7/20.

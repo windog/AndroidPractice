@@ -1,4 +1,4 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.Second;
 
 import java.util.List;
 

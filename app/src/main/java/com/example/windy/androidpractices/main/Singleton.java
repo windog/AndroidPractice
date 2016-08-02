@@ -1,4 +1,4 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.main;
 
 /**
  * Created by windog on 2016/7/23.

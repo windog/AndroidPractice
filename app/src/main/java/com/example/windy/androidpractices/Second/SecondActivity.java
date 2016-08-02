@@ -1,12 +1,13 @@
-package com.example.windy.androidpractices;
+package com.example.windy.androidpractices.Second;
 
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
-import com.example.windy.androidpractices.NewsBean.*;
+import com.example.windy.androidpractices.Second.NewsBean.*;
 
+import com.example.windy.androidpractices.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
